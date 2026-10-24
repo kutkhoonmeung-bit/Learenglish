@@ -1,0 +1,770 @@
+
+<!doctype html>
+<html lang="lo">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>ເກມປະກອບສະຫຼະ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Noto+Sans+Lao:wght@400;600;700&display=swap">
+<style>
+html { scroll-behavior: smooth; }
+
+/* Layout: one column "moveable alphabet" mat. Montessori colour code: consonants blue, vowels red. */
+:root{
+  --bg:#EDF2F6;
+  --surface:#FFFFFF;
+  --ink:#16212C;
+  --muted:#586877;
+  --line:#CBD6DF;
+  --slot:#DDE6ED;
+  --cons:#2D68D8;
+  --vowel:#D6304A;
+  --tile-ink:#FFFFFF;
+  --good:#17804F;
+  --good-bg:#DDF1E7;
+  --bad:#B53626;
+  --bad-bg:#F9E1DC;
+  --note-bg:#E4EAF8;
+  --font-tile:'Andika','Noto Sans Lao',system-ui,sans-serif;
+  --font-ui:'Noto Sans Lao','Andika',system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10151B;--surface:#19222B;--ink:#E8EEF3;--muted:#98A8B6;--line:#2B3845;--slot:#25303B;
+    --cons:#3E78E6;--vowel:#E04A62;--good:#4CC992;--good-bg:#17342A;--bad:#F27B6A;--bad-bg:#3A201C;--note-bg:#1F2A3D;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10151B;--surface:#19222B;--ink:#E8EEF3;--muted:#98A8B6;--line:#2B3845;--slot:#25303B;
+  --cons:#3E78E6;--vowel:#E04A62;--good:#4CC992;--good-bg:#17342A;--bad:#F27B6A;--bad-bg:#3A201C;--note-bg:#1F2A3D;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{
+  background:var(--bg);color:var(--ink);font-family:var(--font-ui);font-size:16px;line-height:1.5;
+  padding-block:76px 48px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+}
+.site-menu{position:fixed;top:0;left:0;right:0;z-index:10;height:57px;background:#19232d;border-bottom:1px solid #303b46;padding:0 max(16px,env(safe-area-inset-left,0px))}
+.site-menu nav{height:100%;margin:0 auto;display:flex;justify-content:center;align-items:center;gap:24px;flex-wrap:wrap}
+.site-menu a{color:#e8eef3;text-decoration:none;font-size:.9rem;font-weight:700;padding:8px 4px;border-radius:6px}
+.site-menu a:hover,.site-menu a:focus-visible,.site-menu a[aria-current="page"]{color:#fff;background:#2b3845;outline:none}
+.wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.wrap>*{min-width:0;max-width:100%}
+.pbar{max-width:100%}
+h1{font-size:1.6rem;line-height:1.25;margin:0;text-wrap:balance}
+.sub{margin:2px 0 0;color:var(--muted);font-size:.95rem}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,summary:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+
+.tabs{display:flex;gap:6px;background:var(--slot);padding:5px;border-radius:12px}
+.tabs button{font-size:.92rem;flex:1;border:0;background:transparent;padding:9px 6px;border-radius:8px;font-weight:600;min-width:0}
+.tabs button[aria-selected="true"]{background:var(--surface);box-shadow:0 1px 0 var(--line)}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.lbl{font-size:.8rem;font-weight:700;letter-spacing:.04em;color:var(--muted)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+/* tiles */
+.t{
+  font-family:var(--font-tile);font-weight:700;color:var(--tile-ink);border:0;border-radius:10px;
+  display:inline-flex;align-items:center;justify-content:center;
+  box-shadow:0 3px 0 rgba(0,0,0,.28);user-select:none;
+}
+.t.c{background:var(--cons)}
+.t.v{background:var(--vowel)}
+.t.sm{min-width:46px;height:46px;padding:0 10px;font-size:1.25rem}
+.t.sm:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.28)}
+.t.sm.used{outline:3px solid var(--ink);outline-offset:1px}
+.t.sm[disabled]{opacity:.45;cursor:default}
+.pool{display:flex;flex-wrap:wrap;gap:8px}
+.poolgap{width:100%;height:0}
+
+/* pattern bar */
+.pbar{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;margin:0 -2px;scrollbar-width:thin}
+.pchip{flex:0 0 auto;border:2px solid var(--line);background:var(--surface);border-radius:12px;padding:6px 10px;min-width:64px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:0;line-height:1.2}
+.pchip b{font-family:var(--font-tile);font-size:1.15rem;color:var(--vowel)}
+.pchip small{font-size:.72rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.pchip[aria-pressed="true"]{border-color:var(--vowel);background:var(--note-bg)}
+
+.pinfo{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.biglabel{display:flex;gap:4px;align-items:center}
+.biglabel .t{width:58px;height:66px;font-size:2.2rem}
+.biglabel .gap{width:24px;height:66px;border-radius:8px;border:2px dashed var(--vowel);opacity:.7}
+.pinfo .txt{flex:1;min-width:180px;display:flex;flex-direction:column;gap:2px}
+.snd{font-size:1.15rem;font-weight:700}
+.ipa{font-family:var(--font-tile);color:var(--muted);font-weight:400;margin-left:6px}
+.tip{color:var(--muted);font-size:.92rem;margin:0}
+
+/* board */
+.board{display:flex;justify-content:center;gap:6px;align-items:flex-start;padding:14px 8px 10px;background:var(--bg);border-radius:12px;flex-wrap:nowrap}
+.sl{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0}
+.sl small{font-size:.75rem;color:var(--muted);font-weight:600}
+.slot,.fixed{width:70px;height:78px;font-size:2.1rem;border-radius:10px}
+.slot{border:2px dashed var(--muted);background:var(--slot);color:var(--tile-ink);font-family:var(--font-tile);font-weight:700;display:flex;align-items:center;justify-content:center}
+.slot.filled{border:0;background:var(--cons);box-shadow:0 3px 0 rgba(0,0,0,.28)}
+.slot.vowelslot.filled{background:var(--vowel)}
+.slot.wide{width:84px}
+.fixed{font-family:var(--font-tile)}
+.wordline{font-family:var(--font-tile);font-size:1.6rem;font-weight:700;text-align:center;letter-spacing:.06em;min-height:2.2rem}
+
+.msg{border-radius:10px;padding:10px 12px;background:var(--note-bg);font-size:.98rem;min-height:3.2rem;display:flex;align-items:center;gap:10px}
+.msg.good{background:var(--good-bg);color:var(--good)}
+.msg.bad{background:var(--bad-bg);color:var(--bad)}
+.msg .w{font-family:var(--font-tile);font-weight:700}
+.msg b{font-weight:700}
+.msg .em{font-size:2.2rem;line-height:1}
+.board.revealed{outline:3px solid var(--good);outline-offset:0}
+.picbox{width:92px;height:92px;border-radius:14px;background:var(--bg);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:3.6rem;line-height:1;flex:0 0 auto}
+
+.btn{border:2px solid var(--ink);background:var(--ink);color:var(--bg);border-radius:10px;padding:8px 16px;font-weight:700}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn[disabled]{opacity:.4;cursor:default}
+
+/* found list */
+.fhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.count{font-variant-numeric:tabular-nums;font-weight:700}
+.bar{height:8px;background:var(--slot);border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--good);width:0;transition:width .3s}
+.rime{display:flex;flex-direction:column;gap:6px}
+.rime h3{margin:0;font-size:.9rem;color:var(--muted);font-family:var(--font-tile);display:flex;gap:8px;align-items:baseline}
+.rime h3 span{font-size:.75rem;font-variant-numeric:tabular-nums}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-family:var(--font-tile);font-weight:700;border-radius:8px;padding:3px 10px;font-size:1.05rem;border:2px solid var(--line);background:var(--surface);color:var(--ink)}
+.chip.on{border-color:var(--good);background:var(--good-bg);color:var(--ink)}
+.chip.off{border-style:dashed;color:var(--muted);font-weight:400;cursor:default}
+.chip small{font-family:var(--font-ui);font-weight:400;color:var(--muted);margin-left:6px;font-size:.8rem}
+
+/* quiz */
+.clue{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.emoji{font-size:3rem;line-height:1;min-width:56px;text-align:center}
+.gloss{font-size:1.3rem;font-weight:700}
+.qmeta{display:flex;justify-content:space-between;font-size:.9rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.ok{outline:3px solid var(--good);outline-offset:1px}
+.no{outline:3px solid var(--bad);outline-offset:1px}
+.score{font-size:3rem;font-weight:700;font-family:var(--font-tile);line-height:1.1}
+
+/* library */
+details{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:0}
+summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;gap:12px;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary .t{min-width:56px;height:44px;padding:0 10px;font-size:1.3rem}
+summary .s{flex:1;min-width:0}
+summary .s b{display:block}
+summary .s span{font-size:.85rem;color:var(--muted)}
+details .in{padding:0 14px 14px;display:flex;flex-direction:column;gap:12px}
+.hidden-note{font-size:.85rem;color:var(--muted);margin:0}
+.seg{display:flex;gap:6px;background:var(--slot);padding:4px;border-radius:10px}
+.seg button{flex:1;border:0;background:transparent;padding:8px 6px;border-radius:7px;font-weight:600;min-width:0;font-size:.92rem}
+.seg button[aria-pressed="true"]{background:var(--surface);box-shadow:0 1px 0 var(--line)}
+select,input.wi{font:inherit;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;min-width:0}
+input.wi{font-family:var(--font-tile);font-size:1.6rem;font-weight:700;letter-spacing:.08em;text-align:center}
+input.wi:focus-visible,select:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.showw{font-family:var(--font-tile);font-weight:700;font-size:2.2rem;letter-spacing:.12em;text-align:center;color:var(--cons);min-height:3rem}
+.lt{font-family:var(--font-tile);font-weight:700;font-size:1.8rem;letter-spacing:.08em}
+.lt.g{color:var(--good)}.lt.r{color:var(--bad)}
+.wstat{font-size:.9rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.pop{animation:pop .35s ease-out}
+@keyframes pop{0%{transform:scale(.9)}60%{transform:scale(1.06)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion: reduce){.pop{animation:none}.bar i{transition:none}}
+@media (max-width:420px){
+  .slot,.fixed{width:58px;height:70px;font-size:1.8rem}
+  .slot.wide{width:70px}
+  .board{gap:4px;padding-inline:4px}
+}
+</style>
+
+ </head>
+<body>
+  <header class="site-menu">
+    <nav aria-label="ເມນູຫຼັກ">
+      <a href="index.html" aria-current="page">HOME</a>
+      <a href="study.html">STUDY</a>
+    </nav>
+  </header>
+
+<div class="wrap">
+  <header>
+    <h1>ເກມປະກອບສະຫຼະ</h1>
+    <p class="sub">ຕົວຕັ້ງ + ສະຫຼະ + ໂຕປະກອບ = ຄຳສັບ. ພະຍັນຊະນະສີຟ້າ, ສະຫຼະສີແດງ.</p>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="ໂໝດເກມ">
+    <button role="tab" id="tab-build" aria-selected="true" aria-controls="v-build">ສ້າງຄຳ</button>
+    <button role="tab" id="tab-quiz" aria-selected="false" aria-controls="v-quiz">ເກມທົດສອບ</button>
+    <button role="tab" id="tab-write" aria-selected="false" aria-controls="v-write">ຝຶກຂຽນ</button>
+    <button role="tab" id="tab-lib" aria-selected="false" aria-controls="v-lib">ຄັງສະຫຼະ</button>
+  </div>
+
+  <!-- BUILD -->
+  <section id="v-build" role="tabpanel" aria-labelledby="tab-build" class="wrap" style="gap:14px">
+    <div class="pbar" id="pbar" role="group" aria-label="ເລືອກສະຫຼະ"></div>
+    <div class="card">
+      <div class="pinfo" id="pinfo"></div>
+      <div class="board" id="board"></div>
+      <div class="wordline" id="wordline" aria-live="polite"></div>
+      <div class="msg" id="bmsg" aria-live="polite">ແຕະຕົວຕັ້ງ ແລະ ໂຕປະກອບ ເພື່ອສ້າງຄຳ.</div>
+      <div class="row">
+        <button class="btn" id="bHear" disabled>ຟັງສຽງ</button>
+        <button class="btn ghost" id="bClear">ລ້າງ</button>
+        <button class="btn ghost" id="bHint">ໃບ້ຄຳ</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="lbl">ຕົວຕັ້ງ (ພະຍັນຊະນະຕົ້ນຄຳ)</div>
+      <div class="pool" id="poolO"></div>
+      <div id="finalWrap" style="display:flex;flex-direction:column;gap:14px">
+        <div class="lbl">ໂຕປະກອບ (ພະຍັນຊະນະທ້າຍ)</div>
+        <div class="pool" id="poolF"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="fhead"><div class="lbl">ຄຳທີ່ພົບ</div><div class="count" id="fcount"></div></div>
+      <div class="bar"><i id="fbar"></i></div>
+      <div id="found" style="display:flex;flex-direction:column;gap:14px"></div>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section id="v-quiz" role="tabpanel" aria-labelledby="tab-quiz" class="wrap" hidden></section>
+
+  <!-- WRITE -->
+  <section id="v-write" role="tabpanel" aria-labelledby="tab-write" class="wrap" hidden></section>
+
+  <!-- LIBRARY -->
+  <section id="v-lib" role="tabpanel" aria-labelledby="tab-lib" class="wrap" hidden style="gap:10px"></section>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- data ---------- */
+var ONSETS=["b","c","d","f","g","h","j","k","l","m","n","p","r","s","t","v","w","y","z","ch","sh","th","wh","kn","wr","st","sp","sk","sm","sn","sl","sw","tr","cr","dr","fr","gr","pl","cl","bl","fl","gl","br","pr","sc"];
+var FINALS=["b","c","d","f","g","k","l","m","n","p","r","s","t","v","x","z","ck","ng","nk","nd","nt","mp","st","ll","lt","lk","sh","ch","th","se"];
+
+/* word format: onset.final|Lao meaning|emoji ; 0 = empty */
+var RAW=[
+{id:"a_e",label:"a_e",tpl:"a_e",ipa:"/eɪ/",lao:"ເອ",tip:"e ທ້າຍຄຳບໍ່ອອກສຽງ ແຕ່ເຮັດໃຫ້ a ອອກສຽງຊື່ຂອງມັນ ຄື ເອ.",
+ w:"sh.p|ຮູບຮ່າງ;t.p|ເທັບ;c.p|ເສື້ອຄຸມ;g.m|ເກມ|🎮;n.m|ຊື່;s.m|ຄືກັນ;f.m|ຊື່ສຽງ;c.m|ມາແລ້ວ;l.t|ຊ້າ;r.t|ອັດຕາ;g.t|ປະຕູຮົ້ວ|🚪;d.t|ວັນທີ|📅;m.k|ເຮັດ;c.k|ເຂົ້າໜົມເຄັກ|🎂;b.k|ອົບ;l.k|ທະເລສາບ|🏞️;s.l|ຂາຍຫຼຸດລາຄາ;t.l|ນິທານ;w.v|ຄື້ນ|🌊;s.v|ປະຢັດ;c.v|ຖ້ຳ;g.v|ໃຫ້ແລ້ວ;pl.n|ເຮືອບິນ|✈️;c.n|ໄມ້ເທົ້າ;l.n|ເລນ;v.s|ແຈກັນ|🏺;c.s|ກໍລະນີ;f.c|ໜ້າ|😀;r.c|ແຂ່ງຂັນ|🏁;pl.c|ບ່ອນ"},
+{id:"i_e",label:"i_e",tpl:"i_e",ipa:"/aɪ/",lao:"ໄອ",tip:"e ທ້າຍຄຳບໍ່ອອກສຽງ ແຕ່ເຮັດໃຫ້ i ອອກສຽງຊື່ຂອງມັນ ຄື ໄອ. ຕົວຢ່າງ f + i_e + v = five.",
+ w:"f.v|ຫ້າ|5️⃣;h.v|ຮັງເຜິ້ງ|🐝;d.v|ດຳນ້ຳ|🤿;l.f|ຊີວິດ;w.f|ເມຍ;k.t|ວ່າວ|🪁;b.t|ກັດ;l.k|ມັກ|❤️;b.k|ລົດຖີບ|🚲;h.k|ຍ່າງປ່າ;m.n|ຂອງຂ້ອຍ;n.n|ເກົ້າ|9️⃣;l.n|ເສັ້ນ;p.n|ຕົ້ນສົນ|🌲;w.n|ເຫຼົ້າແວງ|🍷;f.l|ແຟ້ມ|📁;m.l|ໄມລ໌;sm.l|ຍິ້ມ|😊;wh.l|ໃນຂະນະທີ່;t.m|ເວລາ|⏰;l.m|ໝາກນາວ|🍋;r.d|ຂີ່;h.d|ຊ່ອນ;s.d|ຂ້າງ;w.d|ກວ້າງ;r.c|ເຂົ້າ|🍚;m.c|ໜູ|🐭;n.c|ດີ;d.c|ລູກເຕົ໋າ|🎲;p.p|ທໍ່;r.p|ສຸກ;w.p|ເຊັດ;s.z|ຂະໜາດ;pr.z|ລາງວັນ|🏆"},
+{id:"o_e",label:"o_e",tpl:"o_e",ipa:"/oʊ/",lao:"ໂອ",tip:"e ທ້າຍຄຳບໍ່ອອກສຽງ ແຕ່ເຮັດໃຫ້ o ອອກສຽງຊື່ຂອງມັນ ຄື ໂອ.",
+ w:"n.t|ບັນທຶກ|📝;v.t|ລົງຄະແນນ|🗳️;j.k|ເລື່ອງຕະຫຼົກ;sm.k|ຄວັນ;h.m|ບ້ານ|🏠;d.m|ຫຼັງຄາໂຄ້ງ;b.n|ກະດູກ|🦴;c.n|ໂກນ;z.n|ເຂດ;st.n|ກ້ອນຫີນ|🪨;n.s|ດັງ|👃;r.s|ດອກກຸຫຼາບ|🌹;h.s|ສາຍຢາງ;th.s|ເຫຼົ່ານັ້ນ;h.l|ຮູ|🕳️;p.l|ເສົາ;r.l|ບົດບາດ;r.p|ເຊືອກ;h.p|ຄວາມຫວັງ;st.v|ເຕົາ;dr.v|ຂັບແລ້ວ;br.k|ແຕກ/ຫັກແລ້ວ"},
+{id:"u_e",label:"u_e",tpl:"u_e",ipa:"/juː/ /uː/",lao:"ຢູ / ອູ",tip:"e ທ້າຍຄຳບໍ່ອອກສຽງ ແຕ່ເຮັດໃຫ້ u ອອກສຽງຊື່ຂອງມັນ ຄື ຢູ.",
+ w:"c.t|ໜ້າຮັກ;m.t|ປິດສຽງ|🔇;c.b|ກ້ອນສີ່ຫຼ່ຽມ|🧊;t.b|ທໍ່;h.g|ໃຫຍ່ຫຼາຍ;m.l|ລໍ;r.l|ກົດ;t.n|ທຳນອງ|🎵;j.n|ເດືອນມິຖຸນາ;fl.t|ຂຸ່ຍ;c.r|ຮັກສາ;p.r|ບໍລິສຸດ"},
+{id:"a",label:"a",tpl:"a",ipa:"/æ/",lao:"ແອ",tip:"ສະຫຼະສັ້ນ ຢູ່ລະຫວ່າງພະຍັນຊະນະ ເຊັ່ນ c-a-t.",
+ w:"c.t|ແມວ|🐱;h.t|ໝວກ|🎩;b.t|ຄ້າງຄາວ|🦇;m.t|ເສື່ອ;r.t|ໜູ|🐀;s.t|ນັ່ງແລ້ວ;f.t|ໜາ, ຕຸ້ຍ;m.n|ຜູ້ຊາຍ|👨;c.n|ສາມາດ, ກະປ໋ອງ;f.n|ພັດລົມ;p.n|ກະທະ|🍳;v.n|ລົດຕູ້|🚐;r.n|ແລ່ນແລ້ວ;sc.n|ສະແກນ;b.d|ບໍ່ດີ;m.d|ໂມໂຫ;s.d|ເສົ້າ|😢;d.d|ພໍ່;h.m|ແຮມ;j.m|ແຍມ;b.g|ກະເປົາ|👜;fl.g|ທຸງ|🚩;dr.g|ລາກ;c.b|ແທັກຊີ|🚕;l.b|ຫ້ອງທົດລອງ;c.p|ໝວກແກັບ|🧢;m.p|ແຜນທີ່|🗺️;t.p|ກັອກນ້ຳ;l.p|ຕັກ;g.p|ຊ່ອງວ່າງ;cl.p|ຕົບມື|👏;wr.p|ຫໍ່;f.ng|ເຂັ້ມ;s.ng|ຮ້ອງແລ້ວ;h.ng|ແຂວນ;b.ng|ດັງປັງ;b.nk|ທະນາຄານ|🏦;th.nk|ຂອບໃຈ;t.nk|ຖັງ;s.nk|ຈົມແລ້ວ;h.nd|ມື|✋;l.nd|ແຜ່ນດິນ;s.nd|ຊາຍ|🏖️;b.nd|ວົງດົນຕີ"},
+{id:"e",label:"e",tpl:"e",ipa:"/ɛ/",lao:"ເອະ",tip:"ສະຫຼະສັ້ນ ຢູ່ລະຫວ່າງພະຍັນຊະນະ ເຊັ່ນ b-e-d.",
+ w:"b.t|ພະນັນ;s.t|ຊຸດ, ຕັ້ງ;g.t|ໄດ້ຮັບ;j.t|ເຄື່ອງບິນເຈັດ|🛩️;p.t|ສັດລ້ຽງ|🐕;w.t|ປຽກ|💧;n.t|ຕາໜ່າງ;r.d|ສີແດງ|🔴;b.d|ຕຽງ|🛏️;l.d|ນຳພາແລ້ວ;f.d|ໃຫ້ອາຫານແລ້ວ;h.n|ໄກ່ແມ່|🐔;t.n|ສິບ|🔟;p.n|ປາກກາ|🖊️;m.n|ຜູ້ຊາຍ (ຫຼາຍຄົນ);y.n|ເງິນເຢັນ;w.st|ທິດຕາເວັນຕົກ;t.st|ທົດສອບ;r.st|ພັກຜ່ອນ;b.st|ດີທີ່ສຸດ;n.st|ຮັງນົກ|🪺;v.st|ເສື້ອກັກ;t.nt|ເຕັ້ນ|⛺;w.nt|ໄປແລ້ວ;s.nt|ສົ່ງແລ້ວ;sp.nt|ໃຊ້ຈ່າຍແລ້ວ;b.nt|ງໍ;r.nt|ຄ່າເຊົ່າ;b.ll|ກະດິ່ງ|🔔;s.ll|ຂາຍ;t.ll|ບອກ;w.ll|ດີ, ບໍ່ໃຫ້ຢາກ;f.ll|ຕົກແລ້ວ;c.ll|ເຊວ;sm.ll|ກິ່ນ;n.ck|ຄໍ;d.ck|ດາດຟ້າ"},
+{id:"i",label:"i",tpl:"i",ipa:"/ɪ/",lao:"ອິ",tip:"ສະຫຼະສັ້ນ ຢູ່ລະຫວ່າງພະຍັນຊະນະ ເຊັ່ນ p-i-g.",
+ w:"b.g|ໃຫຍ່;p.g|ໝູ|🐷;d.g|ຂຸດ;w.g|ຜົມປອມ;sk.n|ຜິວໜັງ;p.n|ເຂັມໝຸດ|📌;w.n|ຊະນະ|🏆;f.n|ຄີບປາ;th.n|ບາງ;l.p|ຮີມຝີປາກ|👄;h.p|ສະໂພກ;sk.p|ຂ້າມ;z.p|ຊິບ;s.p|ຈິບ;t.p|ຄຳແນະນຳ;r.p|ຈີກ;h.m|ລາວ (ຜູ້ຊາຍ);sl.m|ຜອມ;sw.m|ລອຍນ້ຳ|🏊;tr.m|ຕັດແຕ່ງ;k.d|ເດັກນ້ອຍ|🧒;d.d|ເຮັດແລ້ວ;h.d|ຊ່ອນແລ້ວ;l.d|ຝາ;s.ng|ຮ້ອງເພງ|🎤;r.ng|ແຫວນ|💍;w.ng|ປີກ;k.ng|ກະສັດ|👑;th.ng|ສິ່ງຂອງ;s.nk|ອ່າງລ້າງຈານ;p.nk|ສີບົວ|🩷;w.nk|ກະພິບຕາ|😉;dr.nk|ດື່ມ|🥤;f.sh|ປາ|🐟;w.sh|ຄວາມປາຖະໜາ;d.sh|ຈານອາຫານ|🍽️;f.ll|ເຕີມ;b.ll|ໃບບິນ;h.ll|ເນີນພູ;k.ll|ຂ້າ;b.t|ຊິ້ນນ້ອຍ;h.t|ຕີ;f.t|ພໍດີ;s.t|ນັ່ງ;k.ck|ເຕະ;s.ck|ເຈັບ, ບໍ່ສະບາຍ;p.ck|ເລືອກ;br.ck|ດິນຈີ່|🧱"},
+{id:"o",label:"o",tpl:"o",ipa:"/ɒ/",lao:"ອໍ",tip:"ສະຫຼະສັ້ນ ຢູ່ລະຫວ່າງພະຍັນຊະນະ ເຊັ່ນ h-o-t.",
+ w:"h.t|ຮ້ອນ|🔥;n.t|ບໍ່;p.t|ໝໍ້;d.t|ຈຸດ;l.t|ຫຼາຍ;g.t|ໄດ້ແລ້ວ;r.t|ເນົ່າ;t.p|ເທິງສຸດ;cr.p|ພືດຜົນ;p.p|ແຕກປັງ;h.p|ໂດດ;m.p|ໄມ້ຖູພື້ນ;sh.p|ຮ້ານຄ້າ|🏪;st.p|ຢຸດ|🛑;b.x|ກ່ອງ|📦;f.x|ໝາຈິ້ງຈອກ|🦊;j.b|ວຽກ;r.b|ປຸ້ນ;s.b|ສະອື້ນ;d.g|ໝາ|🐶;l.g|ທ່ອນໄມ້|🪵;f.g|ໝອກ|🌫️;j.g|ແລ່ນເຫຍາະ;r.ck|ຫີນ|🪨;s.ck|ຖົງຕີນ|🧦;l.ck|ກະແຈ, ລັອກ|🔒;cl.ck|ໂມງ|🕰️;bl.ck|ບລັອກ"},
+{id:"u",label:"u",tpl:"u",ipa:"/ʌ/",lao:"ອະ / ອັ",tip:"ສະຫຼະສັ້ນ ຢູ່ລະຫວ່າງພະຍັນຊະນະ ເຊັ່ນ s-u-n.",
+ w:"b.g|ແມງໄມ້|🐛;h.g|ກອດ|🤗;m.g|ຈອກໜ່ວຍໃຫຍ່|☕;r.g|ພົມ;j.g|ໄຫ;s.n|ດວງອາທິດ|☀️;f.n|ມ່ວນ|🎉;r.n|ແລ່ນ|🏃;b.n|ເຂົ້າຈີ່ກ້ອນ|🍞;g.n|ປືນ;c.t|ຕັດ|✂️;h.t|ກະຕູບ|🛖;n.t|ຖົ່ວ|🥜;b.t|ແຕ່;c.p|ຈອກ;p.p|ລູກໝາ|🐶;t.b|ອ່າງນ້ຳ|🛁;r.b|ຖູ;c.b|ລູກສັດ;j.mp|ໂດດ;b.mp|ຕຸ່ມ, ຊົນ;l.mp|ກ້ອນ;p.mp|ປ້ຳ;d.ck|ເປັດ|🦆;l.ck|ໂຊກ|🍀;tr.ck|ລົດບັນທຸກ|🚚;b.s|ລົດເມ|🚌"},
+{id:"ai",label:"ai",tpl:"ai",ipa:"/eɪ/",lao:"ເອ",tip:"ai ເປັນສະຫຼະຄູ່ ອອກສຽງ ເອ ແລະ ມັກຕາມດ້ວຍພະຍັນຊະນະ.",
+ w:"m.n|ຫຼັກ;g.n|ໄດ້ຮັບ;r.n|ຝົນ|🌧️;p.n|ຄວາມເຈັບ;tr.n|ລົດໄຟ|🚆;br.n|ສະໝອງ|🧠;ch.n|ໂສ້;m.l|ຈົດໝາຍ|✉️;t.l|ຫາງ;n.l|ເລັບ, ຕະປູ|💅;s.l|ແລ່ນເຮືອ|⛵;w.t|ລໍຖ້າ;b.t|ເຫຍື່ອລໍ່;m.d|ແມ່ບ້ານ;p.d|ຈ່າຍແລ້ວ;l.d|ວາງແລ້ວ"},
+{id:"ay",label:"ay",tpl:"ay",ipa:"/eɪ/",lao:"ເອ",tip:"ay ທ້າຍຄຳ ອອກສຽງ ເອ.",
+ w:"d.0|ມື້;pl.0|ຫຼິ້ນ|🧸;s.0|ເວົ້າ|💬;w.0|ທາງ;m.0|ອາດຈະ;h.0|ຫຍ້າແຫ້ງ;b.0|ອ່າວ;r.0|ແສງລຳ;st.0|ຢູ່ຕໍ່;gr.0|ສີເທົາ;tr.0|ຖາດ;cl.0|ດິນໜຽວ"},
+{id:"ee",label:"ee",tpl:"ee",ipa:"/iː/",lao:"ອີ",tip:"ee ສອງຕົວຕິດກັນ ອອກສຽງ ອີ ຍາວ.",
+ w:"s.d|ແກ່ນ|🌱;w.d|ຫຍ້າ;f.d|ໃຫ້ອາຫານ;n.d|ຕ້ອງການ;b.t|ຫົວຜັກກາດແດງ;f.t|ຕີນ (ຫຼາຍ);m.t|ພົບ;d.p|ເລິກ;sl.p|ນອນ|😴;k.p|ເກັບໄວ້;s.n|ເຫັນແລ້ວ;b.n|ເປັນແລ້ວ;gr.n|ສີຂຽວ|🟢;w.k|ອາທິດ;ch.k|ແກ້ມ;tr.0|ຕົ້ນໄມ້|🌳;b.0|ເຜິ້ງ|🐝;s.0|ເຫັນ|👀;kn.0|ເຂົ່າ"},
+{id:"ea",label:"ea",tpl:"ea",ipa:"/iː/",lao:"ອີ",tip:"ea ມັກອອກສຽງ ອີ ຍາວ ເຊັ່ນ tea, beak.",
+ w:"t.0|ຊາ|🍵;s.t|ບ່ອນນັ່ງ|💺;b.k|ປາກນົກ;m.t|ຊີ້ນ|🥩;h.t|ຄວາມຮ້ອນ;r.d|ອ່ານ|📖;l.d|ນຳ;b.n|ຖົ່ວ;cl.n|ສະອາດ|🧼;m.n|ຄວາມໝາຍ;s.l|ກາບ;m.l|ອາຫານມື້;d.l|ຂໍ້ຕົກລົງ;p.ch|ໝາກພີ|🍑;b.ch|ຫາດຊາຍ|🏖️;t.ch|ສອນ;r.ch|ເຖິງ;l.f|ໃບໄມ້|🍃;l.p|ກະໂດດ"},
+{id:"oa",label:"oa",tpl:"oa",ipa:"/oʊ/",lao:"ໂອ",tip:"oa ສອງຕົວຕິດກັນ ອອກສຽງ ໂອ.",
+ w:"b.t|ເຮືອ|🚤;c.t|ເສື້ອຄຸມ|🧥;g.t|ແບ້|🐐;r.d|ຖະໜົນ|🛣️;t.d|ກົບໃຫຍ່;l.d|ບັນທຸກ;s.p|ສະບູ|🧼;c.ch|ຄູຝຶກ;l.n|ເງິນກູ້;m.n|ຄາງ;f.m|ຟອງ;r.m|ເດີນທາງ;g.l|ເປົ້າໝາຍ|🥅;c.l|ຖ່ານຫີນ"},
+{id:"ow1",label:"ow",tpl:"ow",ipa:"/oʊ/",lao:"ໂອ",tip:"ow ທ້າຍຄຳ ບາງຄຳອອກສຽງ ໂອ ເຊັ່ນ snow, grow.",
+ w:"sl.0|ຊ້າ;gr.0|ເຕີບໂຕ|🌱;bl.0|ເປົ່າ|💨;kn.0|ຮູ້;sn.0|ຫິມະ|❄️;fl.0|ໄຫຼ;l.0|ຕ່ຳ;r.0|ແຖວ;b.0|ໂຄ້ງຄຳນັບ;m.0|ຕັດຫຍ້າ"},
+{id:"ow2",label:"ow",tpl:"ow",ipa:"/aʊ/",lao:"ເອົາ",tip:"ow ບາງຄຳອອກສຽງ ເອົາ ເຊັ່ນ cow, down.",
+ w:"c.0|ງົວ|🐄;h.0|ແນວໃດ;n.0|ດຽວນີ້;w.0|ວ້າວ;br.n|ສີນ້ຳຕານ|🟤;d.n|ລົງ|⬇️;t.n|ເມືອງນ້ອຍ|🏘️;cr.n|ມົງກຸດ|👑;cl.n|ນັກຕະຫຼົກ|🤡;g.n|ຊຸດຄຸມ;0.l|ນົກຮູກ|🦉;h.l|ຮ້ອງໂຫຍ;f.l|ສັດປີກ"},
+{id:"ou",label:"ou",tpl:"ou",ipa:"/aʊ/",lao:"ເອົາ",tip:"ou ໃນຫຼາຍຄຳອອກສຽງ ເອົາ ເຊັ່ນ house, cloud.",
+ w:"l.d|ດັງ|🔊;cl.d|ເມກ|☁️;pr.d|ພູມໃຈ;m.th|ປາກ|👄;s.th|ທິດໃຕ້;h.se|ບ້ານ|🏠;m.se|ໜູ|🐭;0.t|ອອກ;sh.t|ຮ້ອງ;sc.t|ລູກເສືອ;gr.nd|ພື້ນດິນ;r.nd|ມົນ|⚪;s.nd|ສຽງ|🔉;f.nd|ພົບແລ້ວ;m.nd|ກອງ;c.ch|ໂຊຟາ|🛋️;p.ch|ຖົງນ້ອຍ"},
+{id:"ar",label:"ar",tpl:"ar",ipa:"/ɑːr/",lao:"ອາ",tip:"ar ອອກສຽງ ອາ ແລະ r ເກືອບບໍ່ອອກສຽງ.",
+ w:"c.0|ລົດ|🚗;b.0|ບາ;f.0|ໄກ;j.0|ໂຖ;st.0|ດາວ|⭐;b.n|ເລົ້າ;y.n|ເສັ້ນດ້າຍ|🧶;c.d|ບັດ|🃏;h.d|ແຂງ;y.d|ເດີ່ນບ້ານ;sh.p|ແຫຼມ;h.m|ເປັນອັນຕະລາຍ;f.m|ກະສິກຳ, ສວນ|🚜;ch.m|ມີສະເໜ່;p.k|ສວນສາທາລະນະ|🏞️;d.k|ມືດ|🌑;b.k|ເຫົ່າ;m.k|ເຄື່ອງໝາຍ;sh.k|ປາສະຫຼາມ|🦈;c.t|ລົດເຂັນ|🛒;p.t|ສ່ວນ;st.t|ເລີ່ມ;sm.t|ສະຫຼາດ|🧠"},
+{id:"or",label:"or",tpl:"or",ipa:"/ɔːr/",lao:"ອໍ",tip:"or ອອກສຽງ ອໍ.",
+ w:"f.k|ສ້ອມ|🍴;p.k|ຊີ້ນໝູ|🥓;c.k|ຈຸກ;n.th|ທິດເໜືອ|🧭;c.n|ສາລີ|🌽;b.n|ເກີດແລ້ວ;h.n|ແກ, ເຂົາ|📯;t.n|ຂາດແລ້ວ;w.n|ໃສ່ແລ້ວ;sh.t|ສັ້ນ;sp.t|ກິລາ|⚽;p.t|ທ່າເຮືອ;f.t|ປ້ອມ|🏰;c.d|ສາຍໄຟ;h.se|ມ້າ|🐴;st.m|ພາຍຸ|⛈️;f.m|ຮູບແບບ"},
+{id:"ore",label:"ore",tpl:"ore",ipa:"/ɔːr/",lao:"ອໍ",tip:"ore ທ້າຍຄຳ ອອກສຽງ ອໍ ເຊັ່ນ more, store.",
+ w:"b.0|ເບື່ອ;m.0|ຫຼາຍກວ່າ;c.0|ແກນກາງ;s.0|ເຈັບ, ຊ້ຳ;w.0|ໃສ່ແລ້ວ;t.0|ຂາດແລ້ວ;sh.0|ຝັ່ງ|🏖️;st.0|ຮ້ານ|🏬;sc.0|ຄະແນນ|💯"},
+{id:"ir",label:"ir",tpl:"ir",ipa:"/ɜːr/",lao:"ເອີ",tip:"ir ອອກສຽງ ເອີ ເຊັ່ນ girl, bird.",
+ w:"g.l|ເດັກຍິງ|👧;d.t|ຂີ້ຝຸ່ນ;f.m|ແໜ້ນ, ບໍລິສັດ;b.d|ນົກ|🐦;s.0|ທ່ານ;st.0|ກວນ;sk.t|ກະໂປ່ງ|👗;sh.t|ເສື້ອເຊີດ|👕;th.d|ທີສາມ;f.st|ທຳອິດ|🥇"},
+{id:"ur",label:"ur",tpl:"ur",ipa:"/ɜːr/",lao:"ເອີ",tip:"ur ອອກສຽງ ເອີ ຄືກັບ ir.",
+ w:"b.n|ໄໝ້|🔥;t.n|ລ້ຽວ|↩️;f.0|ຂົນສັດ;c.l|ມ້ວນ;h.t|ເຈັບ;p.se|ກະເປົາຖື|👛;n.se|ພະຍາບານ|👩‍⚕️;ch.ch|ໂບດ|⛪;b.st|ແຕກ"},
+{id:"igh",label:"igh",tpl:"igh",ipa:"/aɪ/",lao:"ໄອ",tip:"igh ອອກສຽງ ໄອ ແລະ gh ບໍ່ອອກສຽງ.",
+ w:"n.t|ກາງຄືນ|🌙;l.t|ແສງ|💡;f.t|ຕໍ່ສູ້|🥊;m.t|ອາດຈະ;r.t|ຖືກ, ຂວາ;s.t|ການເຫັນ;t.t|ແໜ້ນ;br.t|ສົດໃສ;fl.t|ຖ້ຽວບິນ|🛫;h.0|ສູງ;s.0|ຖອນຫາຍໃຈ;th.0|ຕົ້ນຂາ"},
+{id:"eigh",label:"eigh",tpl:"eigh",ipa:"/eɪ/",lao:"ເອ",tip:"eigh ອອກສຽງ ເອ ເຊັ່ນ eight, weigh.",
+ w:"0.t|ແປດ|8️⃣;w.t|ນ້ຳໜັກ|⚖️;fr.t|ການຂົນສົ່ງ|🚛;sl.0|ລົດລາກຫິມະ|🛷;w.0|ຊັ່ງ|⚖️;n.0|ສຽງມ້າຮ້ອງ|🐴"},
+{id:"al",label:"al / all",tpl:"a",ipa:"/ɔːl/",lao:"ອໍລ",tip:"al ແລະ all ອອກສຽງ ອໍລ ເຊັ່ນ ball, walk.",
+ w:"b.ll|ບານ|⚽;c.ll|ໂທ|📞;f.ll|ຕົກ|🍂;h.ll|ຫໍ|🏛️;t.ll|ສູງ|🦒;w.ll|ຝາ|🧱;m.ll|ຫ້າງສັບພະສິນຄ້າ|🏬;sm.ll|ນ້ອຍ|🐜;st.ll|ແຜງຂາຍ|🧺;s.lt|ເກືອ|🧂;h.lt|ຢຸດ|⏹️;w.lk|ຍ່າງ|🚶;t.lk|ລົມ, ເວົ້າ|🗣️;ch.lk|ຊອກຂຽນກະດານ|🖍️;st.lk|ລຳຕົ້ນ|🎋"}
+];
+
+var EMO={};"shape=🔷 tape=📼 cape=🦸 name=📛 same=🟰 fame=🌟 came=🚶 late=🕙 rate=📊 make=🔨 bake=🥖 sale=🏷️ tale=📖 save=💰 cave=🏔️ gave=🎁 cane=🦯 lane=🏊 case=💼 place=📍 life=🧬 wife=👰 bite=🦷 hike=🥾 mine=⛏️ line=➖ mile=🛣️ while=⏳ ride=🚴 hide=🙈 side=👉 wide=↔️ nice=👍 pipe=🚰 ripe=🍌 wipe=🧽 size=📏 joke=😂 smoke=♨️ dome=🏟️ cone=🍦 zone=🚧 hose=🚿 those=☝️ pole=🎣 role=🎭 rope=🪢 hope=🤞 stove=🍲 drove=🚙 broke=💔 cute=🥰 tube=🧪 huge=🐘 mule=🫏 rule=📜 june=📆 flute=🪈 cure=💊 pure=✨ mat=🧘 sat=🪑 fat=🍔 can=🥫 fan=🌀 ran=💨 scan=📠 bad=👎 mad=😡 dad=👨‍👧 ham=🍖 jam=🍓 drag=➡️ lab=🔬 tap=🚰 lap=💻 gap=🕳️ wrap=🌯 fang=🧛 sang=🎶 hang=🪝 bang=💥 thank=🙏 tank=🪖 sank=⚓ land=🏝️ band=🎸 bet=🎰 set=🎾 get=🤲 net=🕸️ led=🔦 fed=🍼 men=👥 yen=💴 west=⬅️ test=✅ rest=🛌 best=🏅 vest=🦺 went=🚶 sent=📤 spent=💸 bent=↪️ rent=🔑 sell=🛍️ tell=📢 well=🪣 fell=🍂 cell=📱 smell=🌸 neck=🦒 deck=🚢 big=🐋 dig=🧑‍🌾 wig=👩‍🦰 skin=🧴 fin=🐠 thin=🥢 hip=🕺 skip=🦘 zip=🤐 sip=🧃 tip=💵 rip=📃 him=👦 slim=🧍 trim=💇 did=✔️ hid=🫣 lid=🥘 wing=🪽 thing=🧩 sink=🚰 wish=🌠 fill=🥛 bill=🧾 hill=⛰️ kill=☠️ bit=🍫 hit=🏏 fit=👟 sit=🧘‍♂️ kick=🦵 sick=🤒 pick=👆 not=🚫 pot=🫕 dot=⚫ lot=📚 got=🙌 rot=🤢 top=🔝 crop=🌾 pop=🍿 hop=🐰 mop=🧹 job=👷 rob=🦹 sob=😭 jog=🏃‍♂️ block=🔳 rug=🟫 jug=🫗 gun=🔫 but=❗ cup=🍶 rub=👐 cub=🐻 jump=🤸 bump=💢 lump=🥔 pump=⛽ main=1️⃣ gain=📈 pain=🤕 chain=⛓️ tail=🐈 wait=⌛ bait=🪱 maid=🧹 paid=💳 laid=🥚 day=🌞 way=🪧 may=🤷 hay=🌾 bay=🛥️ ray=🔆 stay=🏨 gray=🩶 tray=🍱 clay=🫙 weed=🌿 feed=🥣 need=🆘 beet=🥬 feet=🦶 meet=🤝 deep=🔽 keep=🔐 seen=👁️ been=📜 week=🗓️ cheek=😳 knee=🦿 beak=🦜 heat=🌡️ lead=🚶‍♀️ bean=🫘 mean=💬 seal=🦭 meal=🍛 deal=📃 teach=👩‍🏫 reach=🙋 leap=🤾 toad=🐸 load=🏋️ coach=🧑‍🏫 loan=🏧 moan=😩 foam=🫧 roam=🧳 coal=🏴 slow=🐌 know=🎓 flow=〰️ low=📉 row=🚣 bow=🙇 mow=🪴 how=❓ now=⏱️ wow=😲 gown=👘 howl=🐺 fowl=🐓 proud=😌 south=⬇️ out=↗️ shout=📣 scout=🏕️ ground=🌍 found=🔍 mound=🟫 pouch=👝 bar=🍫 far=🔭 jar=🍯 barn=🏚️ hard=💪 yard=🏡 sharp=🔪 harm=⚠️ charm=🪄 bark=🐕 mark=✏️ part=🍰 start=🚦 cork=🍾 born=👶 torn=👖 worn=🧣 short=🩳 port=🛳️ cord=🔌 form=📋 bore=🥱 more=➕ core=🍎 sore=😣 wore=🎽 tore=🗞️ dirt=🏜️ firm=🏢 sir=🤵 stir=🥄 third=🥉 fur=🧥 curl=💇‍♀️ hurt=🩹 burst=🎈 might=⚡ right=☑️ sight=🕶️ tight=🤏 bright=🌈 high=🏔️ sigh=😮‍💨 thigh=🍗 halt=⏹️ chalk=🖍️ stalk=🎋".split(" ").forEach(function(t){var i=t.indexOf("=");EMO[t.slice(0,i)]=t.slice(i+1);});
+var PATS=RAW.map(function(r){
+  var words=r.w.split(";").map(function(s){
+    var a=s.split("|"), of=a[0].split(".");
+    var o=of[0]==="0"?"":of[0], f=of[1]==="0"?"":of[1];
+    var ww=compose(r.tpl,o,f);return {o:o,f:f,gloss:a[1]||"",emoji:a[2]||EMO[ww]||"",w:ww};
+  });
+  var fins=[];
+  words.forEach(function(x){ if(fins.indexOf(x.f)<0) fins.push(x.f); });
+  return {id:r.id,label:r.label,tpl:r.tpl,ipa:r.ipa,lao:r.lao,tip:r.tip,words:words,noFinal:(fins.length===1&&fins[0]==="")};
+});
+function compose(tpl,o,f){
+  if(tpl.indexOf("_")>=0){var p=tpl.split("_");return o+p[0]+f+p[1];}
+  return o+tpl+f;
+}
+var BYID={}, GLOBAL={};
+PATS.forEach(function(p){ BYID[p.id]=p; p.words.forEach(function(x){ x.pat=p.id; if(!GLOBAL[x.w]) GLOBAL[x.w]=p.id; }); });
+var VOCAB_WORDS="you i the to a it and that of is in what we me this he for my on have your do was no not be are don know can with but all so just there here they like get she go if right out about up at him now oh one come well her how yeah will got want think as see did good who why from let his yes when going time an okay back look us would them where were take then had or been our gonna tell really man some say hey could didn by need something has too more way down make very never only people over because little please love should mean said sorry give off am thank any two even much doing sure thing these help first into anything still find life nothing sir day god work their uh again maybe must before other wait stop call after won talk away than thought home night put great those last better everything told new things always keep long years leave does money around doesn name place ever feel guys father guy made old isn which big lot done hello nice believe girl someone fine thanks wanted kind coming house every ok through being course stay left dad enough happened came may mother wrong world bad might three today listen another understand hear remember ask own same show else kill talking found next getting care car looking son try woman went hi dead many mind wasn friend best mom hell morning trying boy together yourself job saw family real without baby room wouldn already move most seen live miss actually huh both heard once ready head called used idea knew hold happy door such brother also pretty bit took haven yet men whole start use while since wife days guess tomorrow matter meet bring tonight everyone run wanna hard ah alone myself school gone um end saying phone play looks couldn problem few friends gotta ago open anyone killed hope face until lost police excuse turn business case wants says true die heart soon each worry later year watch music hand having probably beautiful doctor sit eat thinking young second working water person part kids late stuff exactly under death minute pay crazy forget everybody kid change gave happen five drink far knows its whatever eyes shut aren hit taking easy times check hands minutes deal different means point inside makes asked somebody mine making body afraid sleep chance dear quite four anyway close ain party fun against word comes important set shall story number daughter least waiting hurt wish moment fight week husband girls rest married fire game nobody mr children side stand read though cut started sister supposed between child goes hours speak women behind almost truth blood able lady anymore playing gets shot reason trouble break war city walk town trust met office question brought yours welcome high wow couple half died cool free either seems power whoa bye buy telling honey tried front team answer gun boys line send news stupid bed hurry full months save sometimes become along hate food outside light l needs dog country clear order em fact lord captain six hot funny black alive pick feeling living cause ahead lose king plan dinner sighs sort leaving shouldn running boss alright promise taken safe ma book sent white hour anybody small perfect lives special parents s john himself perhaps sounds serious sick company ha scared uncle poor red past earth possible shoot touch sound top ass laughs cannot asking win glad control hmm human drive hair jack luck murder happens air ten daddy finally chuckles fast cold seem laughing words hospital street hang dance meeting till others catch follow sense sex lie evening master known dream write million voice sweet rather felt sign lucky somewhere bet o jesus longer calling worked quiet looked less pull beat careful coffee return secret weeks weren date seeing fall given ooh fault straight takes song future gentlemen loved changed road calm wonderful mad turned drop ladies learn step absolutely early explain clean piece yesterday throw picture land feet wonder questions speaking worth darling dude giving president eye quick moving figure state strong sam none amazing ones works act needed weird law worried report goodbye missing choice happening chief wedding strange general pain kidding decided ya pass tired class officer kept wake worse busy eh mistake kiss court building finish during age ship caught marry meant sell dark watching system suppose evidence movie ride t completely mouth totally birthday tv forgive born imagine information instead definitely security certainly film month lying unless train seven wear clothes michael hotel christmas attack hasn round expect sing terrible george bag history blue near broke station seriously forever david frank except thinks message entire joe table talked across rock lovely handle middle buddy paid protect using floor ran swear spend situation ring anywhere dangerous bill york army lead bought finished fair sun letter fool attention club simple interesting space test box group single sitting marriage join fear d peace forgot force short normal charlie present enjoy mike crime horse ground american count area charge honor lunch miles radio idiot ball surprise paper key boat quickly gold bar fish mark tom wearing crying accident government eight fell cover certain interested deep star sea agree problems detective prison major stick offer difficult smart personal record stopped hide whether bank trip relax america public list afternoon brain fix bastard proud tea service screaming forward angry park soul fighting peter rich agent blow paul dress mary missed scene killing standing saved mm respect killer ice mess tough feels church sad cell drunk share camera within card fly ben girlfriend laugh smell broken mum honest often starting calls y spent third english visit mama judge window hungry dare relationship moved prove private wall seat position lieutenant realize lt especially machine walking art pleasure bloody college french involved cry became lived impossible obviously neither accept boyfriend besides queen teacher cops sake loves carry teach apartment upset green la liked cute evil professor contact joke cop huge holy store jail likes lawyer doubt continue appreciate cat shop driving congratulations wrote village quit field james wine decision south sleeping slow laughter island glass beginning cash dying hundred whose difference plane push continues mmm singing eating north mrs tree madam gift truck putting bear board grab beer stuck magic support rules grunts partner reach wind colonel max immediately seconds thousand gives experience cheers victim upon computer christ planet promised bus henry dirty search staying dreams arrest holding suddenly usually lots shoes er jump rid yo knock owe harry grow worst river aunt patient kitchen aah fat passed m final summer bob listening escape everywhere moon arms turns address ow match gasps grand yep shh nervous de choose themselves decide mate drinking press bother foot hadn blame crap drugs type rings mission named heaven picked paris race risk books further danny action allowed orders learned price arrived nick otherwise pictures fit smoke favor played notice awesome smile director guard begin spot surprised innocent narrator herself london feelings enemy battle ourselves alex dollars allow nine gay department guilty apart earlier duty jim suit bell west legs hero destroy stage bunch according chicken bigger grunting low helping admit closed names witness upstairs arm steal jimmy kick twice cross ways sergeant indeed gas keeping energy pregnant waste helped fired favorite tony taste locked places writing adam brothers starts prince form sold silly mention build throat hole figured track ringing lock leg above hiding steve seemed breakfast engine written complete video applause however pressure fresh weapon sky stole study burn reading crowd treat roll double spirit danger cost empty level memory itself acting interest nose plans following bathroom built closer ray sarah band groans apparently excited richard losing animals flight nature raise pop client bomb neck suspect warm extra bottle van heavy mommy dogs wild ridiculous simply lee animal showed billy shooting keeps camp guns medical shame hoping whom bird majesty flowers famous asleep beauty driver keys rain awful large local deserve goddamn stone jane grace consider weekend wondering lay plenty willing pants sweetheart skin excellent beach c faith beg fuckin responsible military cheering opportunity common bottom german whoever cook walked papers justice hall commander drug main knife devil necessary although princess lights flying dick rose knowing clearly hat agreed johnny corner code note tommy due correct apologize language stars faster cars folks bullshit fellow several grandma shows leader leaves restaurant east shouting blind ghost cup gotten tight conversation tells lies nor pulled hanging speed stories health advice held murdered beyond rule hardly possibly inspector cousin trial emergency ought eddie somehow hearing states account spoke file understood angel tape milk powerful weapons practice manager pardon vote jake national career minister super taught robert biggest plays natural dancing copy plus martin cake freedom among breath operation chris crew challenge market meat towards bringing dropped student lied strength size breathe color monster loud photo aw nearly sight greatest games bridge dressed arrested horrible coach planning checked breaking noticed fantastic screams serve ideas investigation center older pack soldiers nonsense doc project training example trick prepared science united travel incredible grandpa paying character teeth criminal charles chinese truly honestly bro survive bobby target feed nurse e fake records breathing sweetie numbers oil suicide belong whoo perfectly amy forgotten remain original papa onto concerned credit ugh invited discuss research easier view chair hurts strike roger fill condition mountain dr nowhere sheriff kim turning brown recognize heads audience jealous pretend society finding shirt comfortable meaning guest pieces dry letting began aye jeff female release ho cards pray unfortunately balls destroyed ended universe prepare opinion movies soldier wash program heat usual ticket stolen prefer aware surely male base matters lift lab command proof cream selling believed create h afford sunday total dumb threw france birth created realized british noise nuts students birds social brilliant bodies tie opened ours bucks kevin mister ugly ryan focus dan opens exist followed england draw purpose letters daniel opening bullet anna lately stayed falling season ends suggest joy distance responsibility whenever issue thousands process sword shower weak lonely happiness eric tiny desk pool property forced settle indistinct weight received gang bite friday disappeared interview expecting kinda surgery horses mayor babe ancient handsome thomas saturday staff lines unit fan gentleman introduce fate split recently expected add ordered slowly alarm member slept signed enter spanish garden brings brave pig model finger medicine access failed flat easily discovered based screw insane cares weather fingers san scott path soft harm style community sees basically al signal nope spare speech covered shake loose snow russian lake bright roof ohh sending paint remind pal naked post sugar heading streets damage silence doors pete ed success wet nah amount members kate manage safety returned harder fbi block showing fancy chef contract dig chest drinks dave buried brian trade journey stomach changes details thoughts divorce funeral maria football reality theory gosh ruined gate william spread outta japanese sudden coat sooner cheese larry spring page ears simon castle hidden storm cos personally artist hill exciting permission jerry expensive tickets forest barely eggs goin regret lesson lover bread andy subject legal growing ill jason mood owner caused beeping points dating loss secretary revenge santa likely rent connection assistant reasons yelling painting trees doctors rush foreign rough murderer century nights pair runs pocket farm matt bike obvious ate grew professional tim goodness parts alan university square grandfather europe genius cases ruin winter tongue memories da buying cancer clock ocean dna liar tour thief bleep lisa rights including competition smith planned emily boring victims mentioned bones plant bless warning knocking re crash bedroom lower silver groaning madame defense results toilet event complicated shape priest royal cheap romantic downstairs invite fortune tears avoid reached higher familiar telephone burning filled kelly alice airport jobs grown walter rachel giant insurance woods n scare pleased period political player stops secrets laura repeat photos finds statement suck younger china humans delicious particular proper rome belongs attacked bath hired site knowledge b led guests celebrate map horn eventually pity powers ashamed assume glasses rise fixed request officers pounds data carefully per depends jury waited positive attorney direction families doin forces location walls useless grant saving speaks fought meal deliver answers changing temple scary millions offered regular carrying official jacket switch grave chase role odd sexy faces becomes closes badly tall confused affair television shock raised panting pizza image clears golden patients watched committed sexual suffer arthur wherever plate appear chocolate clever hm mercy shots lucy dealing trap charges phil bang poison butt drove yourselves headed babies yellow soup mystery picking sat wound traffic courage hunt indian rat terms italian emma checking disease managed winner council appointment monday crack threat jenny physical nation source chose healthy carl victory rick stood kicked annie disgusting palace below shopping neighborhood march lips midnight piss advantage pure india aside jerk mail dawn effect spell freak wood screwed enemies gary awake chuckling vacation violence leo grandmother modern luke firm prime heh touched talent piano license cooking honour concern moves available factory gods value central union mirror studio media taxi dies iron hearts desire rob claire fred songs washington monkey pride pills miracle swim burned smells joking christian bleeding hook beating protection treatment ear carter metal disappear grateful extremely treasure rescue capable passing chatter result suffering sisters laid governor guards louis text literally remove becoming performance stronger rate deeply scream desert vehicle illegal pulling throwing josh unbelievable ted zero dean curious sean candy bone tied edge load susan ahh mountains boom former holiday riding scoffs hundreds motherfucker sue bags stealing appears arrive remains decent issues tip fail bride pissed penny claim friendship desperate flower dramatic refuse solve theme loving properly dragon mostly chuck directly surface false cast junior hunting silent thou egg germany punch africa woke intelligence borrow winning falls popular escaped witch convinced warn announcer champagne dust kyle someday fallen stranger presence tear internet monsieur therefore technology tires toast wise clark americans notes smoking hank ls april wolf precious rooms coast treated material released uniform hated considered rice exchange steps blake convince beast cow files signs drag cab hung carried ordinary successful eve mistakes houses chattering brains japan creature fourth separate cleaning california lf ll shift elizabeth chicago exact karen goal expert served direct score row marks twenty receive series section pilot jackson darkness thy sale destiny cure spoken armed rare helen grade juice wide tower solution schedule explosion wheel cigarette julie fruit blew victor talks sacrifice range button reports prisoner pie effort youth pot eaten taylor knees garage parking ambulance staring chances circumstances sin gordon progress unusual county stairs campaign vision reporter equipment moments joey mass alien trapped helps route defend trace nasty tests magazine rocks dump rude searching clue connected amen pushed merry zone senior closing freeze emperor incident snake mexico lily actor newspaper sentence greg leading friendly jones chosen engaged julia charming mustn anger spending learning spy sharp shadow warrant elevator kingdom ricky jamie squad shoulder wave amanda highness kinds fishing sometime attitude sucks negative screen workers bored cameras similar understanding beeps chain bull gasping fully robin collect gorgeous morgan passion writer empire international curse hire bastards puts leads id blows sons estate customers maggie gunshot device troops hug design movement thunder object loser pen sobbing politics despite alcohol climb clients conference provide marty seek witnesses earn trash valley fashion howard episode prize previously sports wanting debt wishes hitler wire thee circle approach stock facts remembered percent normally tail joined education bravo library rape wings growling thrown tank exhales authority current failure nightmare hitting glory knocked studying barry agency apple border rope duck reputation confidence yard beloved lack actual skills films mental salt flesh anne secure highly federal sand emotional setting nothin senator services robbery hates fed reward theater johnson commit patrick entirely extraordinary ships opposite parties stands terry chat events mummy bay slip disappointed settled begins andrew alert detail pink fellas accepted background garbage panic minds belt blowing hollywood agreement jackie pushing ability tiger whispering culture saint jesse task solid doll intend district pa gee custody ignore naturally useful attempt abandoned cutting kissed guarantee barking gather policy violent maid embarrassing childhood wasting bow chick sara disaster revolution online f demon heavily coincidence perform thin terrific mac crown identity virgin impressive windows potential guitar committee dozen delivery advance quietly stan teaching hunter latest hurting swing capital counting drew dirt whistle marie hits doug deny urgent threatened behavior molly mixed stays assure subtitles explanation wins unique chasing billion duke production slave agents carol lets cruel mask sally behave bury massive pathetic species approaching jo loan struggle dish trusted jumped firing channel abby stopping asks jean swimming daily basement linda quarter erm bound navy article guide accused transfer guts quality fella roman greater couch cheer vegas shoe title shy punishment los clicks closet fever coward flash impressed bruce siren prisoners sides bowl katie supply sensitive hopefully rolling roy dollar tone voices g cheating confess demand museum unknown drama suspicious adult todd frightened warned steady kills crossed lou particularly sandwich laws joint bullets package trained thursday boots possibility albert civil june germans baseball express miserable tuesday parker lion joseph refused shine assault hong jokes breaks argue trail option recall mighty collection oliver wilson accent believes decisions embarrassed mobile customer terribly sec charity considering pussy donna protecting flag kidnapped italy balance creatures nuclear wallet shout vincent entered impression angela jay degrees favour reaction network jessica version concert gear singer diamond defeat steven lane blast wounded anytime partners ages charlotte ceremony league bars orange specific conditions plastic crisis fifth term self offering bud suffered reported commissioner rip mysterious entrance messed tunnel designed neighbor aboard sweat justin ghosts crimes costs deserves dreaming bust el teddy kong messages enjoying afterwards comfort mason surrender gym kitty crush yup arranged suits pee stress cave wing jordan arrange comrade noble tricks betty launch legend mix golf imagination fox kissing butter tax gross edward texas insist marcus classic selfish skull frankie shown bat survived print champion bills therapy lifetime throughout nathan toward sauce experiment margaret".split(" ");
+
+/* ---------- helpers ---------- */
+function $(s,r){return (r||document).querySelector(s);}
+function mk(tag,cls,html){var e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e;}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function say(t,rate){try{if(!("speechSynthesis" in window))return;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(t);u.lang="en-US";u.rate=rate||0.8;speechSynthesis.speak(u);}catch(e){}}
+function store(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function load(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}}
+function rime(tpl,f){return compose(tpl,"",f);}
+function show(sel,on){var e=$(sel);if(e)e.hidden=!on;}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");}
+function labelHTML(p){
+  if(p.tpl.indexOf("_")>=0){var a=p.tpl.split("_");return '<span class="t v">'+a[0]+'</span><span class="gap"></span><span class="t v">'+a[1]+'</span>';}
+  return '<span class="t v" style="width:auto;min-width:58px;padding:0 12px">'+esc(p.label)+'</span>';
+}
+
+/* ---------- tabs ---------- */
+var tabs=["build","quiz","write","lib"];
+function setTab(name){
+  tabs.forEach(function(n){
+    var b=$("#tab-"+n); b.setAttribute("aria-selected",n===name?"true":"false");
+    $("#v-"+n).hidden=(n!==name);
+  });
+  if(name==="quiz") quizRender();
+  if(name==="write") wrRender();
+  if(name==="lib") libRender();
+}
+tabs.forEach(function(n){ $("#tab-"+n).addEventListener("click",function(){setTab(n);}); });
+Array.prototype.forEach.call(document.querySelectorAll("[data-game-tab]"),function(link){
+  link.addEventListener("click",function(ev){
+    ev.preventDefault();
+    var name=link.getAttribute("data-game-tab");
+    setTab(name);
+    $("#tab-"+name).focus();
+    $(".tabs").scrollIntoView({behavior:"smooth",block:"start"});
+  });
+});
+
+/* ---------- BUILD ---------- */
+var found=new Set(load("phonics.found.v1",[]));
+var B={pat:"i_e",o:null,f:null};
+
+function foundCount(p){var n=0;p.words.forEach(function(x){if(found.has(p.id+":"+x.w))n++;});return n;}
+
+function buildPbar(){
+  var bar=$("#pbar"); bar.innerHTML="";
+  PATS.forEach(function(p){
+    var b=mk("button","pchip",'<b>'+esc(p.label)+'</b><small>'+foundCount(p)+'/'+p.words.length+'</small>');
+    b.setAttribute("aria-pressed",p.id===B.pat?"true":"false");
+    b.addEventListener("click",function(){B.pat=p.id;B.o=null;B.f=p.noFinal?"":null;buildAll();});
+    bar.appendChild(b);
+  });
+}
+function buildInfo(){
+  var p=BYID[B.pat], box=$("#pinfo"); box.innerHTML="";
+  var bl=mk("div","biglabel",labelHTML(p)); box.appendChild(bl);
+  var ex=p.words[0];
+  var txt=mk("div","txt",'<div class="snd">ອອກສຽງ '+esc(p.lao)+'<span class="ipa">'+esc(p.ipa)+'</span></div><p class="tip">'+esc(p.tip)+'</p>');
+  box.appendChild(txt);
+}
+function slotBtn(kind,val,label,wide){
+  var wrap=mk("div","sl");
+  var b=mk("button","slot"+(wide?" wide":"")+(val!==null?" filled":""),val===null?"":(val===""?"–":esc(val)));
+  b.setAttribute("aria-label",label+(val!==null?": "+(val===""?"ບໍ່ມີ":val):": ຍັງວ່າງ"));
+  b.addEventListener("click",function(){ if(kind==="o")B.o=null; else B.f=null; buildBoard(); buildPools(); buildEval(false); });
+  wrap.appendChild(b); wrap.appendChild(mk("small",null,label));
+  return wrap;
+}
+function fixedTile(txt,label){
+  var wrap=mk("div","sl");
+  wrap.appendChild(mk("div","t v fixed",esc(txt)));
+  wrap.appendChild(mk("small",null,label));
+  return wrap;
+}
+function buildBoard(){
+  var p=BYID[B.pat], bd=$("#board"); bd.innerHTML="";
+  bd.appendChild(slotBtn("o",B.o,"ຕົວຕັ້ງ",false));
+  if(p.tpl.indexOf("_")>=0){
+    var a=p.tpl.split("_");
+    bd.appendChild(fixedTile(a[0],"ສະຫຼະ"));
+    if(!p.noFinal) bd.appendChild(slotBtn("f",B.f,"ໂຕປະກອບ",true));
+    bd.appendChild(fixedTile(a[1],"e ມະຫັດ"));
+  } else {
+    var big=p.tpl.length>2;
+    var v=fixedTile(p.tpl,"ສະຫຼະ");
+    if(big){ var t=v.firstChild; t.style.width="auto"; t.style.minWidth="70px"; t.style.padding="0 10px"; t.style.fontSize=p.tpl.length>3?"1.5rem":"1.9rem"; }
+    bd.appendChild(v);
+    if(!p.noFinal) bd.appendChild(slotBtn("f",B.f,"ໂຕປະກອບ",true));
+  }
+  show("#finalWrap",!p.noFinal);
+}
+function buildPools(){
+  var p=BYID[B.pat];
+  var po=$("#poolO"); po.innerHTML="";
+  ONSETS.forEach(function(o,i){
+    if(i===19) po.appendChild(mk("div","poolgap"));
+    var b=mk("button","t c sm"+(B.o===o?" used":""),esc(o));
+    b.addEventListener("click",function(){B.o=o;buildBoard();buildPools();buildEval(true);});
+    po.appendChild(b);
+  });
+  var noOn=mk("button","t c sm"+(B.o===""?" used":""),"–");
+  noOn.setAttribute("aria-label","ບໍ່ມີຕົວຕັ້ງ");
+  noOn.addEventListener("click",function(){B.o="";buildBoard();buildPools();buildEval(true);});
+  po.appendChild(noOn);
+  var pf=$("#poolF"); pf.innerHTML="";
+  if(p.noFinal) return;
+  FINALS.forEach(function(f,i){
+    if(i===16) pf.appendChild(mk("div","poolgap"));
+    var b=mk("button","t c sm"+(B.f===f?" used":""),esc(f));
+    b.addEventListener("click",function(){B.f=f;buildBoard();buildPools();buildEval(true);});
+    pf.appendChild(b);
+  });
+  var noF=mk("button","t c sm"+(B.f===""?" used":""),"–");
+  noF.setAttribute("aria-label","ບໍ່ມີໂຕປະກອບ");
+  noF.addEventListener("click",function(){B.f="";buildBoard();buildPools();buildEval(true);});
+  pf.appendChild(noF);
+}
+function setMsg(cls,html){var m=$("#bmsg");m.className="msg"+(cls?" "+cls:"");m.innerHTML=html;}
+var lastWord="";
+function buildEval(speak){
+  var p=BYID[B.pat], wl=$("#wordline");
+  var ready=(B.o!==null)&&(p.noFinal||B.f!==null);
+  $("#bHear").disabled=!ready;
+  if(!ready){
+    lastWord=""; wl.textContent="";
+    setMsg("","ແຕະຕົວຕັ້ງ"+(p.noFinal?"":" ແລະ ໂຕປະກອບ")+" ເພື່ອສ້າງຄຳ.");
+    return;
+  }
+  var w=compose(p.tpl,B.o,p.noFinal?"":B.f);
+  lastWord=w; wl.textContent=w;
+  var real=null; p.words.forEach(function(x){if(x.w===w)real=x;});
+  if(real){
+    var key=p.id+":"+w, isNew=!found.has(key);
+    var clue=(real.emoji?'<span class="em">'+real.emoji+'</span> ':"")+esc(real.gloss);
+    if(isNew){found.add(key);store("phonics.found.v1",Array.from(found));}
+    setMsg("good",(isNew?"<b>ພົບຄຳໃໝ່!</b> ":"<b>ເຈົ້າພົບຄຳນີ້ແລ້ວ.</b> ")+'<span class="w">'+esc(w)+'</span> ແປວ່າ '+(clue||"(ຄຳນີ້)"));
+    if(isNew){wl.classList.remove("pop");void wl.offsetWidth;wl.classList.add("pop");}
+    buildPbar(); buildFound();
+  } else if(GLOBAL[w] && GLOBAL[w]!==p.id){
+    var other=BYID[GLOBAL[w]];
+    setMsg("bad",'<span class="w">'+esc(w)+'</span> ເປັນຄຳແທ້ ແຕ່ຢູ່ໃນກຸ່ມສະຫຼະ <b>'+esc(other.label)+'</b>, ບໍ່ແມ່ນ '+esc(p.label)+'.');
+  } else {
+    setMsg("",'<span class="w">'+esc(w)+'</span> ອ່ານອອກສຽງໄດ້ ແຕ່ຍັງບໍ່ຢູ່ໃນລາຍການຄຳຂອງເກມ (ອາດເປັນຄຳທຽມ). ລອງໃສ່ຕົວອື່ນ.');
+  }
+  if(speak) say(w);
+}
+function buildFound(){
+  var p=BYID[B.pat], box=$("#found"); box.innerHTML="";
+  var groups={}, order=[];
+  p.words.forEach(function(x){var r=rime(p.tpl,x.f); if(!groups[r]){groups[r]=[];order.push(r);} groups[r].push(x);});
+  var n=foundCount(p), tot=p.words.length;
+  $("#fcount").textContent=n+" / "+tot;
+  $("#fbar").style.width=Math.round(n/tot*100)+"%";
+  order.forEach(function(r){
+    var list=groups[r], got=list.filter(function(x){return found.has(p.id+":"+x.w);}).length;
+    var g=mk("div","rime",'<h3>-'+esc(r)+' <span>'+got+'/'+list.length+'</span></h3>');
+    var ch=mk("div","chips");
+    list.forEach(function(x){
+      if(found.has(p.id+":"+x.w)){
+        var c=mk("button","chip on",(x.emoji?x.emoji+" ":"")+esc(x.w)+(x.gloss?'<small>'+esc(x.gloss)+'</small>':""));
+        c.addEventListener("click",function(){say(x.w);});
+        ch.appendChild(c);
+      } else {
+        ch.appendChild(mk("span","chip off","＿"+esc(r)));
+      }
+    });
+    g.appendChild(ch); box.appendChild(g);
+  });
+}
+function buildAll(){buildPbar();buildInfo();buildBoard();buildPools();buildEval(false);buildFound();}
+
+$("#bHear").addEventListener("click",function(){if(lastWord)say(lastWord);});
+$("#bClear").addEventListener("click",function(){var p=BYID[B.pat];B.o=null;B.f=p.noFinal?"":null;buildBoard();buildPools();buildEval(false);});
+$("#bHint").addEventListener("click",function(){
+  var p=BYID[B.pat];
+  var rest=p.words.filter(function(x){return !found.has(p.id+":"+x.w);});
+  if(!rest.length){setMsg("good","<b>ເກັ່ງຫຼາຍ!</b> ເຈົ້າພົບຄົບທຸກຄຳໃນກຸ່ມນີ້ແລ້ວ. ລອງກຸ່ມສະຫຼະອື່ນ.");return;}
+  var x=rest[Math.floor(Math.random()*rest.length)];
+  var clue=((x.emoji?x.emoji+" ":"")+x.gloss).trim();
+  setMsg("","<b>ໃບ້:</b> "+esc(clue)+" ("+x.w.length+" ໂຕອັກສອນ, ລົງທ້າຍດ້ວຍ -"+esc(rime(p.tpl,x.f))+")");
+});
+
+/* ---------- QUIZ ---------- */
+var Q={list:[],i:0,score:0,streak:0,pick:{o:null,v:null,f:null},done:false,state:"start"};
+var QPOOL=[];
+PATS.forEach(function(p){p.words.forEach(function(x){if(x.gloss||x.emoji)QPOOL.push(x);});});
+function quizBest(){return load("phonics.best.v1",0);}
+function quizRender(){
+  var root=$("#v-quiz"); root.innerHTML="";
+  if(Q.state==="start"){
+    var c=mk("div","card");
+    c.innerHTML='<h2 style="margin:0;font-size:1.25rem">ທົດສອບ 10 ຂໍ້</h2><p class="tip" style="margin:0">ເບິ່ງຄຳໃບ້ ແລະ ຟັງສຽງ ແລ້ວເລືອກ <b>ຕົວຕັ້ງ</b>, <b>ສະຫຼະ</b> ແລະ <b>ໂຕປະກອບ</b> ໃຫ້ຄົບ. ຕົວຢ່າງ: ຫ້າ = f + i_e + v = five.</p><p class="tip" style="margin:0">ຄະແນນສູງສຸດຂອງເຈົ້າ: <b>'+quizBest()+'</b> / 100</p>';
+    var b=mk("button","btn","ເລີ່ມເກມ"); b.style.alignSelf="flex-start";
+    b.addEventListener("click",quizStart); c.appendChild(b); root.appendChild(c); return;
+  }
+  if(Q.state==="end"){
+    var best=quizBest(); if(Q.score>best){best=Q.score;store("phonics.best.v1",best);}
+    var msg=Q.score>=90?"ຍອດເຢັ່ຽມ!":Q.score>=60?"ເກັ່ງຫຼາຍ!":"ສູ້ຕໍ່ໄປ, ລອງອີກຄັ້ງ!";
+    var c2=mk("div","card");
+    c2.innerHTML='<div class="lbl">ຄະແນນຂອງເຈົ້າ</div><div class="score">'+Q.score+' <span style="font-size:1.2rem;color:var(--muted)">/ 100</span></div><p style="margin:0;font-weight:700">'+msg+'</p><p class="tip" style="margin:0">ຄະແນນສູງສຸດ: '+best+'</p>';
+    var r=mk("button","btn","ຫຼິ້ນອີກຄັ້ງ"); r.style.alignSelf="flex-start"; r.addEventListener("click",quizStart);
+    c2.appendChild(r); root.appendChild(c2); return;
+  }
+  var x=Q.list[Q.i], p=BYID[x.pat];
+  var card=mk("div","card");
+  card.appendChild(mk("div","qmeta",'<span>ຂໍ້ '+(Q.i+1)+' / '+Q.list.length+'</span><span>ຄະແນນ '+Q.score+(Q.streak>1?' · ຖືກຕິດກັນ '+Q.streak:'')+'</span>'));
+  var clue=mk("div","clue");
+  clue.appendChild(mk("div","picbox",x.emoji||"❓"));
+  var ct=mk("div",null,'<div class="gloss">'+esc(x.gloss||"ຟັງສຽງ ແລ້ວສະກົດຄຳ")+'</div>');
+  var hb=mk("button","btn ghost","ຟັງສຽງ"); hb.style.marginTop="6px"; hb.addEventListener("click",function(){say(x.w);});
+  ct.appendChild(hb); clue.appendChild(ct); card.appendChild(clue);
+
+  var board=mk("div","board"); board.id="qboard"; card.appendChild(board);
+  var wl=mk("div","wordline"); wl.id="qword"; card.appendChild(wl);
+  var res=mk("div","msg","ເລືອກຕົວຕັ້ງ, ສະຫຼະ ແລະ "+(p.noFinal?"ກົດກວດຄຳຕອບ.":"ໂຕປະກອບ.")); res.id="qmsg"; res.setAttribute("aria-live","polite"); card.appendChild(res);
+  root.appendChild(card);
+
+  var tiles=mk("div","card");
+  Q.opts={
+    o:shuffle([x.o].concat(shuffle(ONSETS.filter(function(o){return o!==x.o;})).slice(0,5))),
+    v:null,
+    f:shuffle([x.f].concat(shuffle(FINALS.filter(function(f){return f!==x.f;})).slice(0,5)))
+  };
+  var vs=[p]; var pool=shuffle(PATS.filter(function(q){return q.label!==p.label;}));
+  var seen={}; seen[p.label]=1;
+  pool.forEach(function(q){ if(vs.length<4 && !seen[q.label]){seen[q.label]=1;vs.push(q);} });
+  Q.opts.v=shuffle(vs);
+  var tg=function(title,key,color,list,fmt){
+    var g=mk("div",null); g.style.cssText="display:flex;flex-direction:column;gap:8px";
+    g.appendChild(mk("div","lbl",title));
+    var row=mk("div","pool"); row.id="qp-"+key;
+    list.forEach(function(val){
+      var txt=fmt(val);
+      var b=mk("button","t "+color+" sm",esc(txt));
+      b.dataset.key=key; b.dataset.val=(key==="v"?val.id:val);
+      b.addEventListener("click",function(){quizPick(key,key==="v"?val.id:val);});
+      row.appendChild(b);
+    });
+    g.appendChild(row); tiles.appendChild(g);
+  };
+  tg("ຕົວຕັ້ງ","o","c",Q.opts.o,function(v){return v===""?"–":v;});
+  tg("ສະຫຼະ","v","v",Q.opts.v,function(v){return v.label;});
+  if(!p.noFinal) tg("ໂຕປະກອບ","f","c",Q.opts.f,function(v){return v===""?"–":v;});
+  var act=mk("div","row"); act.id="qact";
+  var chk=mk("button","btn","ກວດຄຳຕອບ"); chk.id="qcheck"; chk.disabled=true; chk.addEventListener("click",quizCheck);
+  act.appendChild(chk); tiles.appendChild(act);
+  root.appendChild(tiles);
+  Q.pick={o:null,v:null,f:p.noFinal?"":null}; Q.done=false;
+  quizBoard();
+}
+function quizStart(){
+  Q.list=shuffle(QPOOL).slice(0,10); Q.i=0; Q.score=0; Q.streak=0; Q.state="play";
+  quizRender();
+  say(Q.list[0].w);
+}
+function quizPick(key,val){
+  if(Q.done) return;
+  Q.pick[key]=val;
+  var btns=document.querySelectorAll("#qp-"+key+" .t");
+  Array.prototype.forEach.call(btns,function(b){ b.classList.toggle("used",b.dataset.val===String(val)); });
+  quizBoard();
+}
+function quizBoard(){
+  var x=Q.list[Q.i], p=BYID[x.pat], bd=$("#qboard"); bd.innerHTML="";
+  var vp=Q.pick.v?BYID[Q.pick.v]:null;
+  function slot(val,label,cls,wide){
+    var w=mk("div","sl");
+    var s=mk("div","slot"+(val!==null?" filled":"")+(cls?" "+cls:"")+(wide?" wide":""),val===null?"":(val===""?"–":esc(val)));
+    if(val!==null && val.length>2) s.style.fontSize="1.4rem";
+    w.appendChild(s); w.appendChild(mk("small",null,label)); return w;
+  }
+  bd.appendChild(slot(Q.pick.o,"ຕົວຕັ້ງ",""));
+  bd.appendChild(slot(vp?vp.label:null,"ສະຫຼະ","vowelslot",true));
+  if(!p.noFinal) bd.appendChild(slot(Q.pick.f,"ໂຕປະກອບ","",false));
+  var ready=Q.pick.o!==null && Q.pick.v!==null && Q.pick.f!==null;
+  var chk=$("#qcheck"); if(chk) chk.disabled=!ready||Q.done;
+  bd.classList.toggle("revealed",Q.done);
+  var wl=$("#qword");
+  if(wl) wl.textContent=(Q.pick.o!==null&&vp&&Q.pick.f!==null)?compose(vp.tpl,Q.pick.o,Q.pick.f):"";
+}
+function quizCheck(){
+  if(Q.done) return;
+  var x=Q.list[Q.i], p=BYID[x.pat];
+  var okO=Q.pick.o===x.o, okV=BYID[Q.pick.v].label===p.label, okF=Q.pick.f===x.f;
+  var all=okO&&okV&&okF; Q.done=true;
+  function mark(key,ok,correctVal){
+    Array.prototype.forEach.call(document.querySelectorAll("#qp-"+key+" .t"),function(b){
+      b.disabled=true;
+      if(b.classList.contains("used")) b.classList.add(ok?"ok":"no");
+      if(!ok && b.dataset.val===String(correctVal)) b.classList.add("ok");
+    });
+  }
+  mark("o",okO,x.o); mark("v",okV,p.id); if(!p.noFinal) mark("f",okF,x.f);
+  var msg=$("#qmsg");
+  if(!all){ Q.pick={o:x.o,v:p.id,f:x.f}; quizBoard(); }
+  if(all){
+    Q.streak++; Q.score+=10;
+    msg.className="msg good"; msg.innerHTML='<b>ຖືກຕ້ອງ!</b> <span class="w">'+esc(x.w)+'</span> = '+esc(x.o||"–")+' + '+esc(p.label)+(p.noFinal?"":' + '+esc(x.f||"–"));
+  } else {
+    Q.streak=0;
+    var bad=[]; if(!okO)bad.push("ຕົວຕັ້ງ"); if(!okV)bad.push("ສະຫຼະ"); if(!okF&&!p.noFinal)bad.push("ໂຕປະກອບ");
+    msg.className="msg bad"; msg.innerHTML='ຜິດທີ່: '+bad.join(", ")+'. ຄຳຕອບ: <span class="w">'+esc(x.w)+'</span> = '+esc(x.o||"–")+' + '+esc(p.label)+(p.noFinal?"":' + '+esc(x.f||"–"));
+  }
+  say(x.w);
+  var act=$("#qact"); act.innerHTML="";
+  var last=(Q.i===Q.list.length-1);
+  var nx=mk("button","btn",last?"ເບິ່ງຄະແນນ":"ຂໍ້ຕໍ່ໄປ");
+  nx.addEventListener("click",function(){
+    if(last){Q.state="end";quizRender();}
+    else{Q.i++;quizRender();say(Q.list[Q.i].w);}
+  });
+  act.appendChild(nx);
+  var hr=mk("button","btn ghost","ຟັງອີກ"); hr.addEventListener("click",function(){say(x.w);}); act.appendChild(hr);
+  document.querySelector(".qmeta span:last-child").textContent="ຄະແນນ "+Q.score+(Q.streak>1?" · ຖືກຕິດກັນ "+Q.streak:"");
+}
+
+/* ---------- LIBRARY ---------- */
+var libDone=false;
+function libRender(){
+  if(libDone) return; libDone=true;
+  var root=$("#v-lib");
+  root.appendChild(mk("p","hidden-note","ແຕະຊື່ສະຫຼະເພື່ອເປີດ, ແຕະຄຳເພື່ອຟັງສຽງ."));
+  PATS.forEach(function(p){
+    var d=document.createElement("details");
+    var sm=document.createElement("summary");
+    var tile=mk("span","t v",esc(p.label));
+    sm.appendChild(tile);
+    sm.appendChild(mk("span","s",'<b>ອອກສຽງ '+esc(p.lao)+' <span style="font-family:var(--font-tile)">'+esc(p.ipa)+'</span></b><span>'+p.words.length+' ຄຳ</span>'));
+    d.appendChild(sm);
+    var inn=mk("div","in");
+    inn.appendChild(mk("p","tip",esc(p.tip)));
+    var groups={},order=[];
+    p.words.forEach(function(x){var r=rime(p.tpl,x.f); if(!groups[r]){groups[r]=[];order.push(r);} groups[r].push(x);});
+    order.forEach(function(r){
+      var g=mk("div","rime",'<h3>-'+esc(r)+'</h3>'), ch=mk("div","chips");
+      groups[r].forEach(function(x){
+        var c=mk("button","chip",(x.emoji?x.emoji+" ":"")+esc(x.w)+(x.gloss?'<small>'+esc(x.gloss)+'</small>':""));
+        c.addEventListener("click",function(){say(x.w);});
+        ch.appendChild(c);
+      });
+      g.appendChild(ch); inn.appendChild(g);
+    });
+    d.appendChild(inn); root.appendChild(d);
+  });
+}
+
+
+/* ---------- WRITE (typing practice) ---------- */
+var Wr={mode:"copy",pat:"all",list:[],i:0,hint:1,done:false,ok:0,tried:0,built:false};
+function wrNewList(){
+  var a=[];
+  if(Wr.pat==="vocab"){
+    a=VOCAB_WORDS.map(function(w){return {w:w,gloss:"",emoji:"",pat:"vocab"};});
+  } else {
+    PATS.forEach(function(p){ if(Wr.pat==="all"||Wr.pat===p.id) p.words.forEach(function(x){a.push(x);}); });
+  }
+  Wr.list=shuffle(a); Wr.i=0;
+}
+function wrRender(){
+  var root=$("#v-write");
+  if(Wr.built) return; Wr.built=true;
+  wrNewList();
+  var c=mk("div","card");
+  c.appendChild(mk("div","lbl","ເລືອກວິທີຝຶກ"));
+  var seg=mk("div","seg"); seg.setAttribute("role","group");
+  var b1=mk("button",null,"ເບິ່ງແລ້ວຄັດລອກ"), b2=mk("button",null,"ຟັງແລ້ວຂຽນເອງ");
+  seg.appendChild(b1); seg.appendChild(b2); c.appendChild(seg);
+  function sync(){b1.setAttribute("aria-pressed",Wr.mode==="copy");b2.setAttribute("aria-pressed",Wr.mode==="own");}
+  b1.addEventListener("click",function(){Wr.mode="copy";sync();wrQ(false);});
+  b2.addEventListener("click",function(){Wr.mode="own";Wr.hint=1;sync();wrQ(false);});
+  sync();
+  var sel=document.createElement("select"); sel.id="wrSel"; sel.setAttribute("aria-label","ເລືອກຊຸດຄຳຝຶກ");
+  var o0=document.createElement("option"); o0.value="all"; o0.textContent="ທຸກກຸ່ມສະຫຼະ (ປະສົມ)"; sel.appendChild(o0);
+  var ov=document.createElement("option"); ov.value="vocab"; ov.textContent="ຄຳສັບແຫຼ່ງເປີດ 3,000 ຄຳ"; sel.appendChild(ov);
+  PATS.forEach(function(p){var o=document.createElement("option");o.value=p.id;o.textContent="ສະຫຼະ "+p.label+" ("+p.words.length+" ຄຳ)";sel.appendChild(o);});
+  sel.addEventListener("change",function(){Wr.pat=sel.value;$("#wrCredit").hidden=Wr.pat!=="vocab";wrNewList();wrQ(false);});
+  c.appendChild(sel);
+  c.appendChild(mk("p","tip","ໂໝດຄັດລອກຈະສະແດງຄຳ; ໂໝດຝຶກຈະໃຫ້ຟັງສຽງແລ້ວຂຽນເອງ. ຊຸດຄຳພື້ນຖານມີຄຳແປລາວ, ສ່ວນຊຸດ 3,000 ຄຳເນັ້ນການຝຶກຟັງ ແລະ ສະກົດ."));
+  c.appendChild(mk("p","hidden-note",'<span id="wrCredit" hidden>3,000 ຄຳນີ້ຈັດຕາມຄວາມຖີ່ໃນ OpenSubtitles 2018 ຈາກ <a href="https://github.com/hermitdave/FrequencyWords" target="_blank" rel="noopener noreferrer">FrequencyWords</a> ໂດຍ Hermit Dave ແລະດັດແປງບາງສ່ວນ; ເນື້ອຫາໃຊ້ສິດ <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>. ຊຸດນີ້ບໍ່ແມ່ນ Oxford 3000 ແລະບໍ່ໄດ້ຈັດລະດັບຕາມ CEFR.</span>'));
+  root.appendChild(c);
+  var q=mk("div","card"); q.id="wrQ"; root.appendChild(q);
+  wrQ(false);
+}
+function wrQ(focus){
+  var q=$("#wrQ"); q.innerHTML="";
+  if(Wr.i>=Wr.list.length){ wrNewList(); }
+  var x=Wr.list[Wr.i], p=BYID[x.pat]; Wr.done=false; Wr.hint=1;
+  q.appendChild(mk("div","wstat",'ຄຳ '+(Wr.i+1)+' / '+Wr.list.length+' · ຂຽນຖືກ '+Wr.ok+' / '+Wr.tried+(p?' · ກຸ່ມສະຫຼະ '+esc(p.label):' · ຄຳສັບ')));
+  var clue=mk("div","clue");
+  clue.appendChild(mk("div","picbox",x.emoji||"❓"));
+  var prompt=x.gloss||(x.pat==="vocab"?"ຟັງສຽງແລ້ວຝຶກສະກົດຄຳ":"");
+  var ct=mk("div",null,'<div class="gloss">'+esc(prompt)+'</div>');
+  var hb=mk("button","btn ghost","ຟັງສຽງ"); hb.style.marginTop="6px"; hb.addEventListener("click",function(){say(x.w);});
+  ct.appendChild(hb); clue.appendChild(ct); q.appendChild(clue);
+  var show=mk("div","showw"); show.id="wrShow"; show.setAttribute("aria-live","polite"); q.appendChild(show);
+  var inp=document.createElement("input"); inp.type="text"; inp.id="wrIn"; inp.className="wi";
+  inp.setAttribute("autocapitalize","off"); inp.setAttribute("autocomplete","off"); inp.setAttribute("autocorrect","off");
+  inp.setAttribute("spellcheck","false"); inp.setAttribute("lang","en"); inp.setAttribute("aria-label","ຂຽນຄຳອັງກິດ"); inp.placeholder=Wr.mode==="own"&&x.pat==="vocab"?"ພິມຄຳທີ່ໄດ້ຍິນ":"ພິມຄຳນີ້ຢູ່ນີ້";
+  q.appendChild(inp);
+  var res=mk("div","msg","ພິມຄຳອັງກິດ ແລ້ວກົດ ກວດ."); res.id="wrMsg"; res.setAttribute("aria-live","polite"); q.appendChild(res);
+  var act=mk("div","row"); act.id="wrAct"; q.appendChild(act);
+  function acts(){
+    act.innerHTML="";
+    if(!Wr.done){
+      var ck=mk("button","btn","ກວດ"); ck.addEventListener("click",wrCheck); act.appendChild(ck);
+      if(Wr.mode==="own"){var hh=mk("button","btn ghost","ໃບ້ຕົວອັກສອນ"); hh.addEventListener("click",function(){Wr.hint=Math.min(x.w.length,Wr.hint+1);wrShow();}); act.appendChild(hh);}
+      var sk=mk("button","btn ghost","ຂ້າມ"); sk.addEventListener("click",function(){Wr.i++;wrQ(true);}); act.appendChild(sk);
+    } else {
+      var nx=mk("button","btn","ຄຳຕໍ່ໄປ"); nx.addEventListener("click",function(){Wr.i++;wrQ(true);}); act.appendChild(nx);
+      var rt=mk("button","btn ghost","ລອງຂຽນໃໝ່"); rt.addEventListener("click",function(){wrQ(true);}); act.appendChild(rt);
+    }
+  }
+  Wr.acts=acts;
+  function wrShow(){
+    var e=$("#wrShow"); if(!e) return;
+    if(Wr.done||Wr.mode==="copy"){ e.textContent=x.w; }
+    else { var t=x.w.slice(0,Wr.hint).split("").join(" "); for(var k=Wr.hint;k<x.w.length;k++) t+=" _"; e.textContent=t; }
+  }
+  Wr.showFn=wrShow; Wr.cur=x;
+  inp.addEventListener("keydown",function(ev){ if(ev.key==="Enter"){ev.preventDefault(); if(Wr.done){Wr.i++;wrQ(true);} else wrCheck();} });
+  wrShow(); acts();
+  say(x.w);
+  if(focus) { try{inp.focus();}catch(e){} }
+}
+function wrCheck(){
+  if(Wr.done) return;
+  var x=Wr.cur, inp=$("#wrIn"), got=inp.value.trim().toLowerCase(), ans=x.w.toLowerCase();
+  if(!got){ var m0=$("#wrMsg"); m0.className="msg"; m0.textContent="ຍັງບໍ່ໄດ້ພິມ. ພິມຄຳກ່ອນ ແລ້ວກົດ ກວດ."; return; }
+  Wr.tried++; Wr.done=true; inp.disabled=true;
+  var m=$("#wrMsg");
+  if(got===ans){
+    Wr.ok++;
+    m.className="msg good"; m.innerHTML='<span class="em">🎉</span> <span><b>ຖືກຕ້ອງ!</b> <span class="w">'+esc(x.w)+'</span>'+(x.gloss?' ແປວ່າ '+esc(x.gloss):"")+'</span>';
+  } else {
+    var h=""; var n=Math.max(got.length,ans.length);
+    for(var i=0;i<got.length;i++){ h+='<span class="lt '+(got[i]===ans[i]?"g":"r")+'">'+esc(got[i])+'</span>'; }
+    var bad=[]; for(var j=0;j<n;j++){ if(got[j]!==ans[j]) bad.push(j+1); }
+    var why=got.length<ans.length?"ຂາດຕົວອັກສອນ":(got.length>ans.length?"ມີຕົວອັກສອນເກີນ":"ຕົວອັກສອນບໍ່ຕົງ");
+    m.className="msg bad"; m.style.flexDirection="column"; m.style.alignItems="flex-start";
+    m.innerHTML='<div>ເຈົ້າພິມ: '+h+'</div><div>ຄຳທີ່ຖືກ: <span class="lt g">'+esc(x.w)+'</span></div><div>'+why+' (ຕຳແໜ່ງທີ່ຜິດ: '+bad.join(", ")+'). ເບິ່ງຄຳທີ່ຖືກແລ້ວລອງຂຽນໃໝ່.</div>';
+  }
+  Wr.showFn(); Wr.acts(); say(x.w);
+  var st=$("#wrQ .wstat"); if(st) st.textContent='ຄຳ '+(Wr.i+1)+' / '+Wr.list.length+' · ຂຽນຖືກ '+Wr.ok+' / '+Wr.tried+(x.pat==="vocab"?' · ຄຳສັບ':' · ກຸ່ມສະຫຼະ '+esc(BYID[x.pat].label));
+}
+
+buildAll();
+})();
+</script>
+</body>
+</html>
